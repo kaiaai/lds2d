@@ -1,0 +1,100 @@
+# Copyright 2026 KAIA.AI
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+"""Command-line interface: ``lds2d read`` and ``lds2d motor``."""
+from __future__ import annotations
+
+import argparse
+import sys
+
+from . import drivers  # noqa: F401  — populates the model registry
+from .core import Lidar, available_models
+
+DEFAULT_PORT = "/dev/serial0"
+
+
+def _cmd_read(args) -> int:
+    lidar = Lidar.open(args.model, args.port, args.baud)
+    print(f"{lidar.MODEL_NAME}: reading {args.port} @ {args.baud or lidar.DEFAULT_BAUD} "
+          f"baud  (Ctrl-C to stop)", file=sys.stderr)
+    try:
+        if args.raw:
+            print(f"{'angle':>7}  {'dist_mm':>7}  {'quality':>7}")
+            for p in lidar.points():
+                if p.valid:
+                    print(f"{p.angle_deg:7.2f}  {p.dist_mm:7d}  {p.quality:7d}")
+        else:
+            print(f"{'scan':>5}  {'freq_hz':>7}  {'n_valid':>7}  "
+                  f"{'min_mm':>7}  {'max_mm':>7}")
+            for n, scan in enumerate(lidar.scans()):
+                valid = scan.valid_points
+                if not valid:
+                    continue
+                d = [p.dist_mm for p in valid]
+                print(f"{n:5d}  {scan.scan_freq_hz:7.1f}  {len(valid):7d}  "
+                      f"{min(d):7d}  {max(d):7d}")
+    except KeyboardInterrupt:
+        print("\nStopped.", file=sys.stderr)
+    finally:
+        lidar.close()
+    return 0
+
+
+def _cmd_motor(args) -> int:
+    import time
+    lidar = Lidar.open(args.model, args.port, args.baud)
+    try:
+        if args.action == "status":
+            hz = lidar.get_scan_freq(1.0)
+            print(f"Spinning at {hz:.2f} Hz" if hz else "No data — motor appears stopped.")
+        elif args.action == "start":
+            lidar.start()
+            time.sleep(1.0)
+            hz = lidar.get_scan_freq(1.5)
+            print(f"Started — spinning at {hz:.2f} Hz." if hz else
+                  "Sent start, but no data yet. Check the Pi-TX → LiDAR-RX wire.")
+        elif args.action == "stop":
+            lidar.stop()
+            time.sleep(1.5)
+            hz = lidar.get_scan_freq(1.0)
+            print("Stopped." if hz is None else f"Still spinning at {hz:.2f} Hz — retry?")
+        elif args.action == "speed":
+            if args.hz is None:
+                print("'speed' needs a value, e.g. 'motor speed 6'", file=sys.stderr)
+                return 2
+            lidar.set_scan_freq(args.hz)
+            time.sleep(0.8)
+            hz = lidar.get_scan_freq(1.5)
+            print(f"Set {args.hz:.1f} Hz — now reading {hz:.2f} Hz." if hz else
+                  f"Sent {args.hz:.1f} Hz, but no data yet (is the motor started?).")
+    finally:
+        lidar.close()
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(prog="lds2d", description="2D LiDAR tool")
+    ap.add_argument("--model", default="LD14P",
+                    help=f"LiDAR model (default LD14P); known: {', '.join(available_models())}")
+    ap.add_argument("--port", default=DEFAULT_PORT, help="serial port")
+    ap.add_argument("--baud", type=int, default=None, help="override the default baud")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    r = sub.add_parser("read", help="print live scan data")
+    r.add_argument("--raw", action="store_true", help="one line per measurement")
+    r.set_defaults(func=_cmd_read)
+
+    m = sub.add_parser("motor", help="control the motor (command-driven models)")
+    m.add_argument("action", choices=["start", "stop", "speed", "status"])
+    m.add_argument("hz", nargs="?", type=float, help="scan rate in Hz (for 'speed')")
+    m.set_defaults(func=_cmd_motor)
+    return ap
+
+
+def main(argv=None) -> int:
+    args = build_parser().parse_args(argv)
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

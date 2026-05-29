@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lds2d"
+version = "0.1.0"
+description = "Python driver for 2D LiDARs (LDROBOT LD14P and more) — a Pythonic port of kaiaai/LDS"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Ilia O.", email = "ilya@ovsy.com" }]
+keywords = ["lidar", "ld14p", "ldrobot", "robotics", "ros2", "raspberry-pi", "slam"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Hardware :: Hardware Drivers",
+]
+dependencies = ["pyserial>=3.4"]
+
+[project.optional-dependencies]
+viz = ["flask>=2.0"]
+dev = ["pytest>=7"]
+
+[project.urls]
+Homepage = "https://makerspet.com"
+Source = "https://github.com/kaiaai/lds2d"
+"C++ library" = "https://github.com/kaiaai/LDS"
+
+[project.scripts]
+lds2d = "lds2d.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
