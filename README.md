@@ -6,8 +6,8 @@ Where the C++ library targets Arduino with registered callbacks, `lds2d` targets
 Linux / Raspberry Pi and gives you plain iterators: loop over individual points
 or over full 360° scans.
 
-> **Supported: LDROBOT LD14P and Xiaomi LDS02RR.** The driver architecture is built
-> to grow — more models from the LDS family (Delta-2A, YDLIDAR, …) are planned.
+> **Supported: LDROBOT LD14P, Xiaomi LDS02RR, and 3irobotix Delta-2A.** The driver
+> architecture is built to grow — more models from the LDS family (YDLIDAR, …) are planned.
 
 ## Install
 
@@ -59,6 +59,17 @@ with Lidar.open("LDS02RR", "/dev/serial0", pwm="software", pwm_pin=18) as lidar:
 `pwm="software"` drives any GPIO via gpiozero (tested). `pwm="hardware"` uses Pi
 hardware PWM (`pwm_channel`/`pwm_chip`) and is supported but not yet hardware-verified.
 Tune with `target_hz=`, `kp=`, `ki=`, `kd=`.
+
+The **3irobotix Delta-2A** works the same way (it also needs host motor control —
+e.g. via the [Maker's Pet driver board](https://makerspet.com/product/driver-board-for-esp32-doit-devkit-v1-brushed-dc-motors-and-lidar/)),
+just a different model name and a 6 Hz default:
+
+```python
+with Lidar.open("DELTA-2A", "/dev/serial0", pwm="software", pwm_pin=18) as lidar:
+    for scan in lidar.scans():
+        ...
+# the 230400-baud Delta-2A variant: add baud=230400
+```
 
 ## Command line
 
