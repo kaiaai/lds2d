@@ -85,6 +85,11 @@ def available_models() -> List[str]:
     return sorted(_REGISTRY)
 
 
+def driver_for(model: str):
+    """Return the driver class registered for a model name, or None."""
+    return _REGISTRY.get(model.upper())
+
+
 class LidarDriver:
     """Base class for all LiDAR drivers.
 
@@ -94,6 +99,7 @@ class LidarDriver:
 
     MODEL_NAME: str = "?"
     DEFAULT_BAUD: int = 230400
+    NEEDS_MOTOR: bool = False   # True for host-driven-motor LiDARs (e.g. LDS02RR)
 
     def __init__(self, transport):
         self._t = transport
@@ -155,7 +161,7 @@ class Lidar:
 
     @staticmethod
     def open(model: str, port: Optional[str] = None, baud: Optional[int] = None,
-             transport=None, **serial_kwargs) -> LidarDriver:
+             transport=None, **kwargs) -> LidarDriver:
         # Import drivers lazily so registering happens on first use.
         from . import drivers  # noqa: F401  (populates the registry)
 
@@ -167,6 +173,6 @@ class Lidar:
             from .transport import SerialTransport
             if port is None:
                 raise ValueError("either 'port' or 'transport' is required")
-            transport = SerialTransport(port, baud or cls.DEFAULT_BAUD,
-                                        **serial_kwargs)
-        return cls(transport)
+            transport = SerialTransport(port, baud or cls.DEFAULT_BAUD)
+        # Remaining kwargs (e.g. pwm config for host-driven motors) go to the driver.
+        return cls(transport, **kwargs)

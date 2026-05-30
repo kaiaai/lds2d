@@ -6,13 +6,16 @@ Where the C++ library targets Arduino with registered callbacks, `lds2d` targets
 Linux / Raspberry Pi and gives you plain iterators: loop over individual points
 or over full 360° scans.
 
-> **v0.1 supports the LDROBOT LD14P.** The driver architecture is built to grow —
-> more models from the LDS family (Delta-2A, LDS02RR, YDLIDAR, …) are planned.
+> **Supported: LDROBOT LD14P and Xiaomi LDS02RR.** The driver architecture is built
+> to grow — more models from the LDS family (Delta-2A, YDLIDAR, …) are planned.
 
 ## Install
 
 ```
 pip install lds2d
+
+# for host-driven-motor LiDARs (the LDS02RR needs the Pi to spin it):
+pip install 'lds2d[pwm]'
 ```
 
 ## Quick start
@@ -40,6 +43,23 @@ with Lidar.open("LD14P", "/dev/serial0") as lidar:
     print(lidar.get_scan_freq())
 ```
 
+### Xiaomi LDS02RR (host-driven motor)
+
+The LDS02RR has no onboard motor controller — it only streams data while the host
+spins it at ~5 Hz. `lds2d` runs that PID + PWM loop for you: just iterating drives
+the motor, and leaving the `with` block stops it.
+
+```python
+# needs the [pwm] extra and the Maker's Pet LDS02RR adapter
+with Lidar.open("LDS02RR", "/dev/serial0", pwm="software", pwm_pin=18) as lidar:
+    for scan in lidar.scans():            # the motor is held at 5 Hz for you
+        print(f"{scan.scan_freq_hz:.1f} Hz  {len(scan.valid_points)} points")
+```
+
+`pwm="software"` drives any GPIO via gpiozero (tested). `pwm="hardware"` uses Pi
+hardware PWM (`pwm_channel`/`pwm_chip`) and is supported but not yet hardware-verified.
+Tune with `target_hz=`, `kp=`, `ki=`, `kd=`.
+
 ## Command line
 
 ```
@@ -51,6 +71,9 @@ lds2d motor status
 lds2d motor stop
 lds2d motor start
 lds2d motor speed 6        # set 6 Hz
+
+# LDS02RR: read drives the motor (software PWM on GPIO18)
+lds2d --model LDS02RR --pwm software --pwm-pin 18 read
 ```
 
 ## Wiring & setup (Raspberry Pi)

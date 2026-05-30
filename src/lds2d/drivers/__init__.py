@@ -3,5 +3,6 @@
 # Licensed under the Apache License, Version 2.0 (the "License").
 """Importing this package registers all bundled drivers."""
 from . import ldrobot_ld14p  # noqa: F401
+from . import xiaomi_lds02rr  # noqa: F401
 
-__all__ = ["ldrobot_ld14p"]
+__all__ = ["ldrobot_ld14p", "xiaomi_lds02rr"]

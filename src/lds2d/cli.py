@@ -8,13 +8,23 @@ import argparse
 import sys
 
 from . import drivers  # noqa: F401  — populates the model registry
-from .core import Lidar, available_models
+from .core import Lidar, available_models, driver_for
 
 DEFAULT_PORT = "/dev/serial0"
 
 
+def _open(args):
+    """Open the LiDAR, forwarding PWM settings only for host-driven-motor models."""
+    cls = driver_for(args.model)
+    kwargs = {}
+    if cls is not None and getattr(cls, "NEEDS_MOTOR", False):
+        kwargs = dict(pwm=args.pwm, pwm_pin=args.pwm_pin, pwm_channel=args.pwm_channel,
+                      pwm_chip=args.pwm_chip, pwm_freq=args.pwm_freq)
+    return Lidar.open(args.model, args.port, args.baud, **kwargs)
+
+
 def _cmd_read(args) -> int:
-    lidar = Lidar.open(args.model, args.port, args.baud)
+    lidar = _open(args)
     print(f"{lidar.MODEL_NAME}: reading {args.port} @ {args.baud or lidar.DEFAULT_BAUD} "
           f"baud  (Ctrl-C to stop)", file=sys.stderr)
     try:
@@ -42,7 +52,7 @@ def _cmd_read(args) -> int:
 
 def _cmd_motor(args) -> int:
     import time
-    lidar = Lidar.open(args.model, args.port, args.baud)
+    lidar = _open(args)
     try:
         if args.action == "status":
             hz = lidar.get_scan_freq(1.0)
@@ -78,6 +88,13 @@ def build_parser() -> argparse.ArgumentParser:
                     help=f"LiDAR model (default LD14P); known: {', '.join(available_models())}")
     ap.add_argument("--port", default=DEFAULT_PORT, help="serial port")
     ap.add_argument("--baud", type=int, default=None, help="override the default baud")
+    # Host-driven motor (LDS02RR) PWM options; ignored by self-spinning LiDARs.
+    ap.add_argument("--pwm", choices=["hardware", "software"], default="software",
+                    help="motor PWM method for host-driven LiDARs (e.g. LDS02RR)")
+    ap.add_argument("--pwm-pin", type=int, default=18, help="BCM GPIO for software PWM")
+    ap.add_argument("--pwm-channel", type=int, default=0, help="hardware PWM channel")
+    ap.add_argument("--pwm-chip", type=int, default=None, help="hardware PWM chip (Pi 5: often 2)")
+    ap.add_argument("--pwm-freq", type=int, default=10000, help="PWM frequency (Hz)")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     r = sub.add_parser("read", help="print live scan data")
