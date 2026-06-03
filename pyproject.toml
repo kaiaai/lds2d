@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lds2d"
-version = "0.3.0"
-description = "Python driver for 2D LiDARs (LDROBOT LD14P, Xiaomi LDS02RR, 3irobotix Delta-2A) — a Pythonic port of kaiaai/LDS"
+version = "0.5.0"
+description = "Python driver for 2D LiDARs (LDROBOT, YDLIDAR, RPLIDAR, 3irobotix, Neato/Xiaomi, Camsense, Hitachi-LG) — a Pythonic port of kaiaai/LDS"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Ilia O.", email = "ilya@ovsy.com" }]
-keywords = ["lidar", "ld14p", "lds02rr", "delta-2a", "ldrobot", "xiaomi", "3irobotix", "robotics", "ros2", "raspberry-pi", "slam"]
+keywords = ["lidar", "ld14p", "ld19", "lds02rr", "delta-2a", "ydlidar", "rplidar", "neato", "xv11", "camsense", "ldrobot", "xiaomi", "3irobotix", "robotics", "ros2", "raspberry-pi", "slam", "visualization"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

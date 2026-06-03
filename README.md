@@ -6,8 +6,11 @@ Where the C++ library targets Arduino with registered callbacks, `lds2d` targets
 Linux / Raspberry Pi and gives you plain iterators: loop over individual points
 or over full 360° scans.
 
-> **Supported: LDROBOT LD14P, Xiaomi LDS02RR, and 3irobotix Delta-2A.** The driver
-> architecture is built to grow — more models from the LDS family (YDLIDAR, …) are planned.
+> **23 models supported** across LDROBOT, YDLIDAR, RPLIDAR, 3irobotix, Neato /
+> Xiaomi, Camsense and Hitachi-LG — see the [model table](#supported-models)
+> below. Every model is ported from [kaiaai/LDS](https://github.com/kaiaai/LDS)
+> and unit-tested against recorded byte streams; the ones not yet checked on real
+> hardware are flagged.
 
 ## Install
 
@@ -16,6 +19,9 @@ pip install lds2d
 
 # for host-driven-motor LiDARs (the LDS02RR needs the Pi to spin it):
 pip install 'lds2d[pwm]'
+
+# for the live browser visualizer:
+pip install 'lds2d[viz]'
 ```
 
 ## Quick start
@@ -71,12 +77,53 @@ with Lidar.open("DELTA-2A", "/dev/serial0", pwm="software", pwm_pin=18) as lidar
 # the 230400-baud Delta-2A variant: add baud=230400
 ```
 
+## Supported models
+
+Open any of these with its name, e.g. `Lidar.open("YDLIDAR-X4", "/dev/serial0")`.
+**Motor** is how the LiDAR spins: *onboard* (self-spinning or started by a serial
+command — nothing extra needed), or *host PWM* (the Pi must drive the motor —
+needs the `[pwm]` extra and a driver board; `lds2d` runs the PID for you). **HW**
+marks whether the port has been confirmed on real hardware yet.
+
+| Model | `open(...)` name | Baud | Motor | HW |
+|---|---|---|---|---|
+| LDROBOT LD14P | `LD14P` | 230400 | onboard (serial cmd) | ✅ |
+| LDROBOT LD19 | `LD19` | 230400 | onboard | spec¹ |
+| LDROBOT LD06 | `LD06` | 230400 | onboard | spec¹ |
+| LDROBOT STL19P | `STL19P` | 230400 | onboard | spec¹ |
+| 3irobotix Delta-2A | `DELTA-2A` | 115200 | host PWM | ✅ |
+| 3irobotix Delta-2B | `DELTA-2B` | 230400 | host PWM | spec¹ |
+| 3irobotix Delta-2D | `DELTA-2D` | 115200 | host PWM | spec¹ |
+| 3irobotix Delta-2G | `DELTA-2G` | 115200 | host PWM | spec¹ |
+| 3irobotix LDS08RR | `LDS08RR` | 115200 | host PWM | spec¹ |
+| Xiaomi LDS02RR | `LDS02RR` | 115200 | host PWM | ✅ |
+| Xiaomi LDS01RR | `LDS01RR` | 115200 | host PWM | spec¹ |
+| Neato XV11 | `XV11` | 115200 | host PWM | spec¹ |
+| YDLIDAR X4 | `YDLIDAR-X4` | 128000 | onboard | spec¹ |
+| YDLIDAR X2 / X2L | `YDLIDAR-X2` | 115200 | onboard | spec¹ |
+| YDLIDAR X3 | `YDLIDAR-X3` | 115200 | onboard | spec¹ |
+| YDLIDAR X3-PRO | `YDLIDAR-X3-PRO` | 115200 | onboard | spec¹ |
+| YDLIDAR X4-PRO | `YDLIDAR-X4-PRO` | 128000 | onboard | spec¹ |
+| YDLIDAR SCL | `YDLIDAR-SCL` | 115200 | onboard | spec¹ |
+| YDLIDAR T-mini | `YDLIDAR-TMINI` | 230400 | onboard | spec¹ |
+| RPLIDAR A1 | `RPLIDAR-A1` | 115200 | onboard (serial cmd) | spec¹ |
+| RPLIDAR C1 | `RPLIDAR-C1` | 460800 | onboard (serial cmd) | spec¹ |
+| Camsense X1 | `CAMSENSE-X1` | 115200 | onboard | spec¹ |
+| Hitachi-LG HLS-LFCD2 (TurtleBot3 LDS-01) | `HLS-LFCD2` | 230400 | onboard (serial cmd) | spec¹ |
+
+¹ **spec** = faithfully ported from the kaiaai/LDS C++ and unit-tested against
+synthetic packets, but not yet confirmed on physical hardware. If you run one of
+these, a report (success or bug) is very welcome. Most models carry several
+aliases (`LDROBOT_LD14P`, `DELTA_2A`, `YDLIDAR_X4` …); `lds2d.available_models()`
+lists them all.
+
 ## Command line
 
 ```
 lds2d read                 # summarized: one line per full scan
 lds2d read --raw           # one line per measurement
 lds2d --port /dev/ttyUSB0 read
+lds2d viz                  # live polar plot in your browser (needs [viz])
 
 lds2d motor status
 lds2d motor stop
@@ -85,6 +132,33 @@ lds2d motor speed 6        # set 6 Hz
 
 # LDS02RR: read drives the motor (software PWM on GPIO18)
 lds2d --model LDS02RR --pwm software --pwm-pin 18 read
+```
+
+## Live visualizer
+
+Want to *see* the sweep? `lds2d viz` serves a live polar plot you can open in any
+browser on your network — no GUI on the Pi required.
+
+```
+pip install 'lds2d[viz]'
+lds2d viz                                   # LD14P on /dev/serial0, port 8080
+lds2d --model LDS02RR --pwm software viz    # host-driven-motor models work too
+lds2d viz --port 9000
+```
+
+Then open `http://<your-pi>:8080`. Points are coloured by signal strength and the
+range ring auto-scales to the room; the HUD shows the live scan rate and point
+count. Under the hood it's a background reader thread feeding a thread-safe
+latest-scan buffer that a tiny Flask app exposes as JSON — and like every other
+moving part in `lds2d`, the buffer and scan→JSON conversion are
+[unit-tested without any hardware](tests/test_viz.py).
+
+```python
+from lds2d import Lidar
+from lds2d.viz import serve
+
+with Lidar.open("LD14P", "/dev/serial0") as lidar:
+    serve(lidar, port=8080)
 ```
 
 ## Wiring & setup (Raspberry Pi)

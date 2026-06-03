@@ -3,7 +3,10 @@ through a fake transport, and check parsing, CRC, scan grouping, and motor frame
 import struct
 from itertools import islice
 
+import pytest
+
 from lds2d import Lidar, ScanPoint
+from lds2d.core import driver_for
 from lds2d.crc import crc8
 from lds2d.drivers.ldrobot_ld14p import build_command, parse_packet
 
@@ -128,3 +131,22 @@ def test_set_scan_freq_rejects_out_of_range():
         except ValueError:
             continue
         raise AssertionError(f"{bad} Hz should have been rejected")
+
+
+# --- the LD-series siblings share the LD14P packet (LD06/LD19/STL19P) ---
+
+@pytest.mark.parametrize("model", ["LD06", "LD19", "STL19P",
+                                   "LDROBOT_LD19", "LDROBOT_STL19P"])
+def test_ldrobot_siblings_parse_like_ld14p(model):
+    pkt = make_packet(0, 1100, list(range(100, 100 + POINTS)))
+    lidar = Lidar.open(model, transport=FakeTransport(pkt + pkt))
+    pts = list(islice(lidar.points(), POINTS))
+    assert len(pts) == POINTS
+    assert pts[0].dist_mm == 100 and round(pts[-1].angle_deg, 2) == 11.0
+
+
+def test_ldrobot_siblings_are_distinct_models_same_baud():
+    names = {driver_for(m).MODEL_NAME for m in ("LD14P", "LD06", "LD19", "STL19P")}
+    assert names == {"LDROBOT LD14P", "LDROBOT LD06",
+                     "LDROBOT LD19", "LDROBOT STL19P"}
+    assert {driver_for(m).DEFAULT_BAUD for m in ("LD06", "LD19", "STL19P")} == {230400}

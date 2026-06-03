@@ -1,7 +1,7 @@
 # Copyright 2026 KAIA.AI
 #
 # Licensed under the Apache License, Version 2.0 (the "License").
-"""Command-line interface: ``lds2d read`` and ``lds2d motor``."""
+"""Command-line interface: ``lds2d read``, ``lds2d viz``, and ``lds2d motor``."""
 from __future__ import annotations
 
 import argparse
@@ -43,6 +43,21 @@ def _cmd_read(args) -> int:
                 d = [p.dist_mm for p in valid]
                 print(f"{n:5d}  {scan.scan_freq_hz:7.1f}  {len(valid):7d}  "
                       f"{min(d):7d}  {max(d):7d}")
+    except KeyboardInterrupt:
+        print("\nStopped.", file=sys.stderr)
+    finally:
+        lidar.close()
+    return 0
+
+
+def _cmd_viz(args) -> int:
+    from .viz import serve
+    lidar = _open(args)
+    shown = "localhost" if args.host in ("0.0.0.0", "") else args.host
+    print(f"{lidar.MODEL_NAME}: live plot at http://{shown}:{args.port}  "
+          f"(Ctrl-C to stop)", file=sys.stderr)
+    try:
+        serve(lidar, host=args.host, port=args.port)
     except KeyboardInterrupt:
         print("\nStopped.", file=sys.stderr)
     finally:
@@ -100,6 +115,11 @@ def build_parser() -> argparse.ArgumentParser:
     r = sub.add_parser("read", help="print live scan data")
     r.add_argument("--raw", action="store_true", help="one line per measurement")
     r.set_defaults(func=_cmd_read)
+
+    v = sub.add_parser("viz", help="live polar plot in your browser")
+    v.add_argument("--host", default="0.0.0.0", help="bind address (default all interfaces)")
+    v.add_argument("--port", type=int, default=8080, help="HTTP port (default 8080)")
+    v.set_defaults(func=_cmd_viz)
 
     m = sub.add_parser("motor", help="control the motor (command-driven models)")
     m.add_argument("action", choices=["start", "stop", "speed", "status"])

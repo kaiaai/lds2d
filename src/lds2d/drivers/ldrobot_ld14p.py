@@ -123,3 +123,25 @@ class LD14P(LidarDriver):
                 i += 1
             del buf[:-1]
         return None
+
+
+# --- the rest of the LDROBOT LD-series ---------------------------------------
+# The LD06, LD19 and STL19P stream the *identical* 47-byte packet at the same
+# 230400 baud (in kaiaai/LDS the LD06/STL19P classes subclass LD19, which shares
+# LD14P's scan_packet_t byte-for-byte). So they are the same parser under a
+# different name. They are typically free-running at ~10 Hz; the inherited 0x54
+# motor command frames match the LD14P's but are not hardware-verified on these.
+
+@register("LD19", "LDROBOT_LD19")
+class LD19(LD14P):
+    MODEL_NAME = "LDROBOT LD19"
+
+
+@register("LD06", "LDROBOT_LD06")
+class LD06(LD19):
+    MODEL_NAME = "LDROBOT LD06"
+
+
+@register("STL19P", "LDROBOT_STL19P")
+class STL19P(LD19):
+    MODEL_NAME = "LDROBOT STL19P"
