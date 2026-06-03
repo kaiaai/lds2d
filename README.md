@@ -7,12 +7,12 @@ Linux / Raspberry Pi and gives you plain iterators: loop over individual points
 or over full 360° scans.
 
 > **23 models supported** across LDROBOT, YDLIDAR, RPLIDAR, 3irobotix, Neato /
-> Xiaomi, Camsense and Hitachi-LG — see the [model table](#supported-models)
+> Xiaomi, Camsense and Hitachi-LG — see the [model table](https://github.com/kaiaai/lds2d#supported-models)
 > below. Every model is ported from [kaiaai/LDS](https://github.com/kaiaai/LDS)
 > and unit-tested against recorded byte streams; the ones not yet checked on real
 > hardware are flagged.
 
-📝 **Read the intro:** [lds2d: one Python library for 2D LiDARs — now with a live
+**Read the intro:** [lds2d: one Python library for 2D LiDARs — now with a live
 browser radar](https://makerspet.com/blog/lds2d-python-2d-lidar-library-live-browser-radar/).
 
 ## Install
@@ -41,7 +41,7 @@ with Lidar.open("LDROBOT-LD14P", "/dev/serial0") as lidar:
 ```
 
 Model names are `MANUFACTURER-MODEL` (e.g. `YDLIDAR-X4`, `RPLIDAR-A1`) — see the
-[model table](#supported-models). Want a flat stream instead of grouped scans?
+[model table](https://github.com/kaiaai/lds2d#supported-models). Want a flat stream instead of grouped scans?
 Use `lidar.points()`.
 
 ### Motor control (LDROBOT-LD14P)
@@ -162,7 +162,7 @@ range ring auto-scales to the room; the HUD shows the live scan rate and point
 count. Under the hood it's a background reader thread feeding a thread-safe
 latest-scan buffer that a tiny Flask app exposes as JSON — and like every other
 moving part in `lds2d`, the buffer and scan→JSON conversion are
-[unit-tested without any hardware](tests/test_viz.py).
+[unit-tested without any hardware](https://github.com/kaiaai/lds2d/blob/main/tests/test_viz.py).
 
 ```python
 from lds2d import Lidar
@@ -210,4 +210,4 @@ pytest
 
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+Apache License 2.0 — see [LICENSE](https://github.com/kaiaai/lds2d/blob/main/LICENSE).
