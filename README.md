@@ -20,7 +20,7 @@ browser radar](https://makerspet.com/blog/lds2d-python-2d-lidar-library-live-bro
 ```
 pip install lds2d
 
-# for host-driven-motor LiDARs (the LDS02RR needs the Pi to spin it):
+# for host-driven-motor LiDARs (the Pi spins them) — see "Software setup" below:
 pip install 'lds2d[pwm]'
 
 # for the live browser visualizer:
@@ -181,6 +181,51 @@ See the step-by-step tutorials, which this library grew out of:
 
 In short: LiDAR 5V→Pin2, GND→Pin6, LiDAR TX→GPIO15/Pin10 (reading), LiDAR
 RX→GPIO14/Pin8 (motor commands). 3.3 V logic, no level shifter.
+
+### Software setup
+
+**Enable the serial port** (once): `sudo raspi-config` → *Interface Options →
+Serial Port* → *login shell over serial?* **No**, *serial hardware enabled?*
+**Yes**, then reboot. The LiDAR then appears at `/dev/serial0`. Your user needs
+the `dialout` group to open the port (and `gpio` to drive the motor) — both are
+default for the standard Pi user; otherwise `sudo usermod -aG dialout,gpio $USER`
+and log back in.
+
+**Self-spinning LiDARs** — LDROBOT, YDLIDAR, RPLIDAR, Camsense, Hitachi-LG — need
+nothing else:
+
+```bash
+python3 -m venv ~/lidar && source ~/lidar/bin/activate
+pip install lds2d
+lds2d --model YDLIDAR-X4 read
+```
+
+**Host-driven-motor LiDARs** — 3irobotix Delta-*, Xiaomi LDS02RR / LDS01RR, Neato
+XV11 — let the Pi spin the motor over a GPIO with
+[`gpiozero`](https://gpiozero.readthedocs.io/), which on the Pi 5 talks through
+the `lgpio` backend. Both ship with Raspberry Pi OS as `python3-gpiozero` /
+`python3-lgpio`. Two snags trip people up: recent Raspberry Pi OS blocks `pip`
+from installing into the system Python (PEP 668), and the `lgpio` wheel won't
+build from PyPI without `swig`. The painless way is a venv that can **see** the
+system GPIO packages:
+
+```bash
+sudo apt install -y python3-gpiozero python3-lgpio   # usually already present
+python3 -m venv --system-site-packages ~/lidar
+source ~/lidar/bin/activate
+pip install lds2d
+lds2d --model 3IROBOTIX-DELTA-2A --pwm software --pwm-pin 18 read
+```
+
+`--system-site-packages` lets the venv use the system `gpiozero`/`lgpio` while
+`lds2d` and `pyserial` come from PyPI. Prefer a fully isolated venv instead?
+Install the build tools first — `sudo apt install -y swig python3-dev` — then
+`pip install 'lds2d[pwm]' lgpio` builds the backend inside it.
+
+> The motor PWM pin is `--pwm-pin` on the CLI / `pwm_pin=` in Python (default
+> **GPIO18**). `--pwm hardware` uses the Pi's hardware PWM instead — cleaner, but
+> needs a `dtoverlay=pwm-2chan` line in `/boot/firmware/config.txt` (on the Pi 5
+> also `--pwm-chip 2`).
 
 ## Extending
 
