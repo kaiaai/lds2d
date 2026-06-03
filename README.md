@@ -116,10 +116,6 @@ marks whether the port has been confirmed on real hardware yet.
 | Camsense X1 | `CAMSENSE-X1` | 115200 | onboard | spec¹ |
 | Hitachi-LG HLS-LFCD2 (TurtleBot3 LDS-01) | `HLS-LFCD2` | 230400 | onboard (serial cmd) | spec¹ |
 
-Names are case-insensitive, and most models also accept an underscore form and a
-short product alias (`LDROBOT_LD14P`, `LD14P`, `DELTA_2A` …). The generic codes
-(`X4`, `A1`, `X1` …) are intentionally **not** accepted on their own — they must
-carry the manufacturer prefix, so two vendors' "X1" can never clash.
 `lds2d.available_models()` lists every accepted name.
 
 ¹ **spec** = faithfully ported from the kaiaai/LDS C++ and unit-tested against
@@ -172,15 +168,45 @@ with Lidar.open("LDROBOT-LD14P", "/dev/serial0") as lidar:
     serve(lidar, port=8080)
 ```
 
+## Wiring & Setup (Linux PC)
+
+*Self-spinning LiDARs* (LDROBOT, YDLIDAR, RPLIDAR, Camsense, Hitachi-LG) need only a serial or USB-to-serial port. Connect as follows:
+
+- LiDAR TX to serial RX
+- LiDAR RX (if available) to serial TX
+- GND to GND
+- 5V to 5V power
+
+The LiDAR 5V current supply ranges ~0.3~1A peak depending on LiDAR model.
+
 ## Wiring & setup (Raspberry Pi)
 
-See the step-by-step tutorials, which this library grew out of:
+The wiring is as follows:
+
+- LiDAR 5V → Raspberry Pi header Pin2
+- LiDAR GND → Pin6
+- LiDAR TX → GPIO15/Pin10 (reading)
+- LiDAR RX → GPIO14/Pin8 (motor stop, start, speed)
+
+LiDAR logic is typically 3.3V except old Neato - no level shifter.
+
+Alternatively, instead of the serial port available on the Raspberry Pi's header, you can use a USB-to-Serial adapter - see the Linux PC wiring instructions above.
+
+See these step-by-step tutorials for wiring illustrations:
 
 - [Connect & read the LD14P on a Raspberry Pi](https://makerspet.com/blog/tutorial-connect-ldrobot-ld14p-lidar-to-raspberry-pi-python/)
 - [Control the LD14P motor](https://makerspet.com/blog/tutorial-control-ldrobot-ld14p-lidar-motor-raspberry-pi-python/)
 
-In short: LiDAR 5V→Pin2, GND→Pin6, LiDAR TX→GPIO15/Pin10 (reading), LiDAR
-RX→GPIO14/Pin8 (motor commands). 3.3 V logic, no level shifter.
+*Host-driven-motor low-cost LiDARs* (3irobotix Delta-*, Xiaomi LDS02RR / LDS01RR, Neato XV11) require GPIO to operate in addition to a serial or USB-to-serial port. Therefore, host-driven-motor LiDARs require a Linux device with GPIO - like Raspberry Pi.
+
+Host-driven-motor LiDARs require one GPIO connection:
+
+- LiDAR MOT+, MOT- (host-driven LiDARs only) → PWM-to-motor-driver adapter → GPIO18/Pin12
+
+The PWM-to-motor-driver adapter for host-driven-motor LiDARs is a simple circuit - see these step-by-step tutorials:
+
+- [Tutorial: Connect 3irobotix Delta-2A LiDAR to Raspberry Pi (Python)](https://makerspet.com/blog/tutorial-connect-3irobotix-delta-2a-lidar-to-raspberry-pi-python/)
+- [Tutorial: Connect Xiaomi LDS02RR LiDAR to Raspberry Pi (Python)](https://makerspet.com/blog/tutorial-connect-xiaomi-lds02rr-lidar-to-raspberry-pi-python/)
 
 ### Software setup
 
@@ -200,7 +226,7 @@ pip install lds2d
 lds2d --model YDLIDAR-X4 read
 ```
 
-**Host-driven-motor LiDARs** — 3irobotix Delta-*, Xiaomi LDS02RR / LDS01RR, Neato
+**Host-driven-motor low-cost LiDARs** — 3irobotix Delta-*, Xiaomi LDS02RR / LDS01RR, Neato
 XV11 — let the Pi spin the motor over a GPIO with
 [`gpiozero`](https://gpiozero.readthedocs.io/), which on the Pi 5 talks through
 the `lgpio` backend. Both ship with Raspberry Pi OS as `python3-gpiozero` /
