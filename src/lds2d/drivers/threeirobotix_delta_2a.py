@@ -83,7 +83,7 @@ def decode_delta(buf: bytearray, packets_per_scan: int = _PACKETS_PER_SCAN):
         yield scan_freq_hz, points
 
 
-@register("DELTA-2A", "DELTA_2A", "DELTA2A", "3IROBOTIX_DELTA_2A")
+@register("3IROBOTIX-DELTA-2A", "3IROBOTIX_DELTA_2A", "DELTA-2A", "DELTA_2A", "DELTA2A")
 class Delta2A(HostMotorLidar):
     MODEL_NAME = "3irobotix Delta-2A"
     DEFAULT_BAUD = 115200       # the 230400 variant is the same parser at a higher baud

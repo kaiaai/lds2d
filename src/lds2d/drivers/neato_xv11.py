@@ -140,11 +140,11 @@ class _NeatoXV11Base(HostMotorLidar):
             yield parse_packet(pkt, cw=self.CW)
 
 
-@register("NEATO_XV11", "NEATO-XV11", "XV11")
+@register("NEATO-XV11", "NEATO_XV11", "XV11")
 class NeatoXV11(_NeatoXV11Base):
     MODEL_NAME = "Neato XV11"
 
 
-@register("LDS01RR", "LDS-01RR", "XIAOMI_LDS01RR", "XIAOMI-LDS01RR")
+@register("XIAOMI-LDS01RR", "XIAOMI_LDS01RR", "LDS01RR", "LDS-01RR")
 class LDS01RR(_NeatoXV11Base):
     MODEL_NAME = "Xiaomi LDS01RR"

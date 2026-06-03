@@ -122,7 +122,7 @@ def parse_node(node: bytes) -> Tuple[ScanPoint, bool]:
     return ScanPoint(angle_deg, dist_mm, quality), scan_completed
 
 
-@register("RPLIDAR-A1", "RPLIDAR_A1", "A1")
+@register("RPLIDAR-A1", "RPLIDAR_A1")
 class RPLIDAR_A1(LidarDriver):
     """SLAMTEC RPLIDAR A1: command-started, 115200 baud, internal motor."""
 
@@ -211,7 +211,7 @@ class RPLIDAR_A1(LidarDriver):
                 yield 0.0, [point]
 
 
-@register("RPLIDAR-C1", "RPLIDAR_C1", "C1")
+@register("RPLIDAR-C1", "RPLIDAR_C1")
 class RPLIDAR_C1(RPLIDAR_A1):
     """SLAMTEC RPLIDAR C1: same node protocol, 460800 baud, fully internal motor."""
 

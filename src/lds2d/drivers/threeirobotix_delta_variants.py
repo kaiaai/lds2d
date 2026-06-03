@@ -51,28 +51,28 @@ class _DeltaVariant(HostMotorLidar):
         yield from decode_delta(buf, self.PACKETS_PER_SCAN)
 
 
-@register("DELTA-2B", "DELTA_2B", "DELTA2B", "3IROBOTIX_DELTA_2B")
+@register("3IROBOTIX-DELTA-2B", "3IROBOTIX_DELTA_2B", "DELTA-2B", "DELTA_2B", "DELTA2B")
 class Delta2B(_DeltaVariant):
     MODEL_NAME = "3irobotix Delta-2B"
     DEFAULT_BAUD = 230400          # the only C++ override: getSerialBaudRate()
     PACKETS_PER_SCAN = 16
 
 
-@register("DELTA-2D", "DELTA_2D", "DELTA2D", "3IROBOTIX_DELTA_2D")
+@register("3IROBOTIX-DELTA-2D", "3IROBOTIX_DELTA_2D", "DELTA-2D", "DELTA_2D", "DELTA2D")
 class Delta2D(_DeltaVariant):
     MODEL_NAME = "3irobotix Delta-2D"
     DEFAULT_BAUD = 115200
     PACKETS_PER_SCAN = 16          # max_data_sample_count=24 affects bounds only
 
 
-@register("DELTA-2G", "DELTA_2G", "DELTA2G", "3IROBOTIX_DELTA_2G")
+@register("3IROBOTIX-DELTA-2G", "3IROBOTIX_DELTA_2G", "DELTA-2G", "DELTA_2G", "DELTA2G")
 class Delta2G(_DeltaVariant):
     MODEL_NAME = "3irobotix Delta-2G"
     DEFAULT_BAUD = 115200
     PACKETS_PER_SCAN = 15          # C++ override: get_packets_per_scan()=15
 
 
-@register("LDS08RR", "LDS-08RR", "LDS_08RR", "3IROBOTIX_LDS08RR")
+@register("3IROBOTIX-LDS08RR", "3IROBOTIX_LDS08RR", "LDS08RR", "LDS-08RR", "LDS_08RR")
 class Lds08RR(_DeltaVariant):
     MODEL_NAME = "LDS08RR"         # C++: "3irobotics LDS08RR"; subclasses Delta-2D
     DEFAULT_BAUD = 115200

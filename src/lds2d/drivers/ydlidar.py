@@ -241,7 +241,7 @@ def build_command(cmd: int) -> bytes:
     return bytes([CMD_SYNC_BYTE, cmd & 0xFF])
 
 
-@register("YDLIDAR-X4", "YDLIDAR_X4", "X4")
+@register("YDLIDAR-X4", "YDLIDAR_X4")
 class YDLidarX4(_YDLidarBase):
     MODEL_NAME = "YDLIDAR X4"
     DEFAULT_BAUD = 128000
@@ -268,21 +268,21 @@ class _SelfSpinningYDLidar(_YDLidarBase):
         pass
 
 
-@register("YDLIDAR-X2", "YDLIDAR_X2", "X2",
-          "YDLIDAR-X2L", "YDLIDAR_X2L", "X2L",
-          "YDLIDAR-X2_X2L", "X2_X2L")
+@register("YDLIDAR-X2", "YDLIDAR_X2",
+          "YDLIDAR-X2L", "YDLIDAR_X2L",
+          "YDLIDAR-X2-X2L", "YDLIDAR_X2_X2L")
 class YDLidarX2X2L(_SelfSpinningYDLidar):
     MODEL_NAME = "YDLIDAR X2/X2L"
     DEFAULT_BAUD = 115200
 
 
-@register("YDLIDAR-X3", "YDLIDAR_X3", "X3")
+@register("YDLIDAR-X3", "YDLIDAR_X3")
 class YDLidarX3(YDLidarX2X2L):
     MODEL_NAME = "YDLIDAR X3"
     DEFAULT_BAUD = 115200
 
 
-@register("YDLIDAR-X3-PRO", "YDLIDAR_X3_PRO", "X3-PRO", "X3_PRO")
+@register("YDLIDAR-X3-PRO", "YDLIDAR_X3_PRO")
 class YDLidarX3Pro(YDLidarX3):
     MODEL_NAME = "YDLIDAR X3 PRO"
     DEFAULT_BAUD = 115200
@@ -293,7 +293,7 @@ class YDLidarX3Pro(YDLidarX3):
 # distance already in mm (no /4), interference bits as quality.
 # ---------------------------------------------------------------------------
 
-@register("YDLIDAR-X4-PRO", "YDLIDAR_X4_PRO", "X4-PRO", "X4_PRO")
+@register("YDLIDAR-X4-PRO", "YDLIDAR_X4_PRO")
 class YDLidarX4Pro(_SelfSpinningYDLidar):
     MODEL_NAME = "YDLIDAR X4 PRO"
     DEFAULT_BAUD = 128000
@@ -317,7 +317,7 @@ class YDLidarX4Pro(_SelfSpinningYDLidar):
 # SCL — 3-byte samples, intensity + 14-bit distance, separate angle correction.
 # ---------------------------------------------------------------------------
 
-@register("YDLIDAR-SCL", "YDLIDAR_SCL", "SCL")
+@register("YDLIDAR-SCL", "YDLIDAR_SCL")
 class YDLidarSCL(_SelfSpinningYDLidar):
     MODEL_NAME = "YDLIDAR SCL"
     DEFAULT_BAUD = 115200
@@ -351,7 +351,7 @@ class YDLidarSCL(_SelfSpinningYDLidar):
 # T-mini (T-mini Plus / Pro) — ToF: distance in mm, no angle correction.
 # ---------------------------------------------------------------------------
 
-@register("YDLIDAR-TMINI", "YDLIDAR_TMINI", "TMINI", "T-MINI", "T_MINI")
+@register("YDLIDAR-TMINI", "YDLIDAR_TMINI", "YDLIDAR-T-MINI")
 class YDLidarTmini(_SelfSpinningYDLidar):
     MODEL_NAME = "YDLIDAR T-mini"
     DEFAULT_BAUD = 230400

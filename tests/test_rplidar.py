@@ -201,14 +201,14 @@ def test_stop_writes_stop_command():
 
 # --- A1 vs C1 registration / baud ---
 
-@pytest.mark.parametrize("alias", ["RPLIDAR-A1", "RPLIDAR_A1", "A1"])
+@pytest.mark.parametrize("alias", ["RPLIDAR-A1", "RPLIDAR_A1"])
 def test_a1_aliases_resolve(alias):
     cls = driver_for(alias)
     assert cls.MODEL_NAME == "RPLIDAR A1"
     assert cls.DEFAULT_BAUD == 115200
 
 
-@pytest.mark.parametrize("alias", ["RPLIDAR-C1", "RPLIDAR_C1", "C1"])
+@pytest.mark.parametrize("alias", ["RPLIDAR-C1", "RPLIDAR_C1"])
 def test_c1_aliases_resolve(alias):
     cls = driver_for(alias)
     assert cls.MODEL_NAME == "RPLIDAR C1"

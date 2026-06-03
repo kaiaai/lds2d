@@ -64,7 +64,7 @@ def _find_header(buf: bytearray) -> int:
     return -1
 
 
-@register("LD14P", "LDROBOT_LD14P")
+@register("LDROBOT-LD14P", "LDROBOT_LD14P", "LD14P")
 class LD14P(LidarDriver):
     MODEL_NAME = "LDROBOT LD14P"
     DEFAULT_BAUD = 230400
@@ -132,16 +132,16 @@ class LD14P(LidarDriver):
 # different name. They are typically free-running at ~10 Hz; the inherited 0x54
 # motor command frames match the LD14P's but are not hardware-verified on these.
 
-@register("LD19", "LDROBOT_LD19")
+@register("LDROBOT-LD19", "LDROBOT_LD19", "LD19")
 class LD19(LD14P):
     MODEL_NAME = "LDROBOT LD19"
 
 
-@register("LD06", "LDROBOT_LD06")
+@register("LDROBOT-LD06", "LDROBOT_LD06", "LD06")
 class LD06(LD19):
     MODEL_NAME = "LDROBOT LD06"
 
 
-@register("STL19P", "LDROBOT_STL19P")
+@register("LDROBOT-STL19P", "LDROBOT_STL19P", "STL19P")
 class STL19P(LD19):
     MODEL_NAME = "LDROBOT STL19P"

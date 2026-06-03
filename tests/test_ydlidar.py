@@ -296,7 +296,7 @@ def test_x4_start_sends_force_stop_then_scan():
 
 def test_x4_stop_sends_stop_command():
     t = FakeTransport()
-    Lidar.open("X4", transport=t).stop()
+    Lidar.open("YDLIDAR-X4", transport=t).stop()
     assert bytes(t.written) == bytes([CMD_SYNC_BYTE, CMD_STOP])
 
 
@@ -306,7 +306,8 @@ def test_build_command():
 
 def test_self_spinning_models_have_noop_motor():
     # X2/X3/SCL/T-mini spin on power: start()/stop() must not raise or write.
-    for model in ("X2", "X3", "X3-PRO", "X4-PRO", "SCL", "TMINI"):
+    for model in ("YDLIDAR-X2", "YDLIDAR-X3", "YDLIDAR-X3-PRO",
+                  "YDLIDAR-X4-PRO", "YDLIDAR-SCL", "YDLIDAR-TMINI"):
         t = FakeTransport()
         lidar = Lidar.open(model, transport=t)
         lidar.start()
@@ -319,14 +320,15 @@ def test_self_spinning_models_have_noop_motor():
 @pytest.mark.parametrize("alias,model_name,baud", [
     ("YDLIDAR-X4", "YDLIDAR X4", 128000),
     ("YDLIDAR_X4", "YDLIDAR X4", 128000),
-    ("X2", "YDLIDAR X2/X2L", 115200),
-    ("X2L", "YDLIDAR X2/X2L", 115200),
-    ("X3", "YDLIDAR X3", 115200),
-    ("X3-PRO", "YDLIDAR X3 PRO", 115200),
-    ("X4-PRO", "YDLIDAR X4 PRO", 128000),
-    ("SCL", "YDLIDAR SCL", 115200),
-    ("TMINI", "YDLIDAR T-mini", 230400),
-    ("T-MINI", "YDLIDAR T-mini", 230400),
+    ("YDLIDAR-X2", "YDLIDAR X2/X2L", 115200),
+    ("YDLIDAR-X2L", "YDLIDAR X2/X2L", 115200),
+    ("YDLIDAR-X2-X2L", "YDLIDAR X2/X2L", 115200),
+    ("YDLIDAR-X3", "YDLIDAR X3", 115200),
+    ("YDLIDAR-X3-PRO", "YDLIDAR X3 PRO", 115200),
+    ("YDLIDAR-X4-PRO", "YDLIDAR X4 PRO", 128000),
+    ("YDLIDAR-SCL", "YDLIDAR SCL", 115200),
+    ("YDLIDAR-TMINI", "YDLIDAR T-mini", 230400),
+    ("YDLIDAR-T-MINI", "YDLIDAR T-mini", 230400),
 ])
 def test_registry_aliases(alias, model_name, baud):
     cls = driver_for(alias)
@@ -338,7 +340,7 @@ def test_registry_aliases(alias, model_name, baud):
 def test_pro_variants_share_x4_parser():
     # X3 PRO must parse an X4-format package identically to the base.
     pkt = make_x4(CT_5HZ_START, 0.0, 11.0, [123] * 12)
-    lidar = Lidar.open("X3-PRO", transport=FakeTransport(pkt + pkt))
+    lidar = Lidar.open("YDLIDAR-X3-PRO", transport=FakeTransport(pkt + pkt))
     pts = list(islice(lidar.points(), 12))
     assert len(pts) == 12
     assert pts[0].dist_mm == 123

@@ -96,7 +96,7 @@ def _find_header(buf: bytearray) -> int:
     return idx
 
 
-@register("CAMSENSE-X1", "CAMSENSE_X1", "CAMSENSE", "X1")
+@register("CAMSENSE-X1", "CAMSENSE_X1", "CAMSENSE")
 class CamsenseX1(LidarDriver):
     MODEL_NAME = "Camsense X1"
     DEFAULT_BAUD = 115200

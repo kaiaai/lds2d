@@ -12,6 +12,9 @@ or over full 360° scans.
 > and unit-tested against recorded byte streams; the ones not yet checked on real
 > hardware are flagged.
 
+📝 **Read the intro:** [lds2d: one Python library for 2D LiDARs — now with a live
+browser radar](https://makerspet.com/blog/lds2d-python-2d-lidar-library-live-browser-radar/).
+
 ## Install
 
 ```
@@ -29,7 +32,7 @@ pip install 'lds2d[viz]'
 ```python
 from lds2d import Lidar
 
-with Lidar.open("LD14P", "/dev/serial0") as lidar:
+with Lidar.open("LDROBOT-LD14P", "/dev/serial0") as lidar:
     for scan in lidar.scans():            # one full rotation at a time
         pts = scan.valid_points
         print(f"{scan.scan_freq_hz:.1f} Hz  {len(pts)} points")
@@ -37,12 +40,14 @@ with Lidar.open("LD14P", "/dev/serial0") as lidar:
             print(p.angle_deg, p.dist_mm, p.quality)
 ```
 
-Want a flat stream instead of grouped scans? Use `lidar.points()`.
+Model names are `MANUFACTURER-MODEL` (e.g. `YDLIDAR-X4`, `RPLIDAR-A1`) — see the
+[model table](#supported-models). Want a flat stream instead of grouped scans?
+Use `lidar.points()`.
 
-### Motor control (LD14P)
+### Motor control (LDROBOT-LD14P)
 
 ```python
-with Lidar.open("LD14P", "/dev/serial0") as lidar:
+with Lidar.open("LDROBOT-LD14P", "/dev/serial0") as lidar:
     lidar.set_scan_freq(6)     # 2–8 Hz
     lidar.stop()               # stop the motor (data stream halts)
     lidar.start()              # spin back up
@@ -57,7 +62,7 @@ the motor, and leaving the `with` block stops it.
 
 ```python
 # needs the [pwm] extra and the Maker's Pet LDS02RR adapter
-with Lidar.open("LDS02RR", "/dev/serial0", pwm="software", pwm_pin=18) as lidar:
+with Lidar.open("XIAOMI-LDS02RR", "/dev/serial0", pwm="software", pwm_pin=18) as lidar:
     for scan in lidar.scans():            # the motor is held at 5 Hz for you
         print(f"{scan.scan_freq_hz:.1f} Hz  {len(scan.valid_points)} points")
 ```
@@ -71,7 +76,7 @@ e.g. via the [Maker's Pet driver board](https://makerspet.com/product/driver-boa
 just a different model name and a 6 Hz default:
 
 ```python
-with Lidar.open("DELTA-2A", "/dev/serial0", pwm="software", pwm_pin=18) as lidar:
+with Lidar.open("3IROBOTIX-DELTA-2A", "/dev/serial0", pwm="software", pwm_pin=18) as lidar:
     for scan in lidar.scans():
         ...
 # the 230400-baud Delta-2A variant: add baud=230400
@@ -87,18 +92,18 @@ marks whether the port has been confirmed on real hardware yet.
 
 | Model | `open(...)` name | Baud | Motor | HW |
 |---|---|---|---|---|
-| LDROBOT LD14P | `LD14P` | 230400 | onboard (serial cmd) | ✅ |
-| LDROBOT LD19 | `LD19` | 230400 | onboard | spec¹ |
-| LDROBOT LD06 | `LD06` | 230400 | onboard | spec¹ |
-| LDROBOT STL19P | `STL19P` | 230400 | onboard | spec¹ |
-| 3irobotix Delta-2A | `DELTA-2A` | 115200 | host PWM | ✅ |
-| 3irobotix Delta-2B | `DELTA-2B` | 230400 | host PWM | spec¹ |
-| 3irobotix Delta-2D | `DELTA-2D` | 115200 | host PWM | spec¹ |
-| 3irobotix Delta-2G | `DELTA-2G` | 115200 | host PWM | spec¹ |
-| 3irobotix LDS08RR | `LDS08RR` | 115200 | host PWM | spec¹ |
-| Xiaomi LDS02RR | `LDS02RR` | 115200 | host PWM | ✅ |
-| Xiaomi LDS01RR | `LDS01RR` | 115200 | host PWM | spec¹ |
-| Neato XV11 | `XV11` | 115200 | host PWM | spec¹ |
+| LDROBOT LD14P | `LDROBOT-LD14P` | 230400 | onboard (serial cmd) | ✅ |
+| LDROBOT LD19 | `LDROBOT-LD19` | 230400 | onboard | spec¹ |
+| LDROBOT LD06 | `LDROBOT-LD06` | 230400 | onboard | spec¹ |
+| LDROBOT STL19P | `LDROBOT-STL19P` | 230400 | onboard | spec¹ |
+| 3irobotix Delta-2A | `3IROBOTIX-DELTA-2A` | 115200 | host PWM | ✅ |
+| 3irobotix Delta-2B | `3IROBOTIX-DELTA-2B` | 230400 | host PWM | spec¹ |
+| 3irobotix Delta-2D | `3IROBOTIX-DELTA-2D` | 115200 | host PWM | spec¹ |
+| 3irobotix Delta-2G | `3IROBOTIX-DELTA-2G` | 115200 | host PWM | spec¹ |
+| 3irobotix LDS08RR | `3IROBOTIX-LDS08RR` | 115200 | host PWM | spec¹ |
+| Xiaomi LDS02RR | `XIAOMI-LDS02RR` | 115200 | host PWM | ✅ |
+| Xiaomi LDS01RR | `XIAOMI-LDS01RR` | 115200 | host PWM | spec¹ |
+| Neato XV11 | `NEATO-XV11` | 115200 | host PWM | spec¹ |
 | YDLIDAR X4 | `YDLIDAR-X4` | 128000 | onboard | spec¹ |
 | YDLIDAR X2 / X2L | `YDLIDAR-X2` | 115200 | onboard | spec¹ |
 | YDLIDAR X3 | `YDLIDAR-X3` | 115200 | onboard | spec¹ |
@@ -111,11 +116,15 @@ marks whether the port has been confirmed on real hardware yet.
 | Camsense X1 | `CAMSENSE-X1` | 115200 | onboard | spec¹ |
 | Hitachi-LG HLS-LFCD2 (TurtleBot3 LDS-01) | `HLS-LFCD2` | 230400 | onboard (serial cmd) | spec¹ |
 
+Names are case-insensitive, and most models also accept an underscore form and a
+short product alias (`LDROBOT_LD14P`, `LD14P`, `DELTA_2A` …). The generic codes
+(`X4`, `A1`, `X1` …) are intentionally **not** accepted on their own — they must
+carry the manufacturer prefix, so two vendors' "X1" can never clash.
+`lds2d.available_models()` lists every accepted name.
+
 ¹ **spec** = faithfully ported from the kaiaai/LDS C++ and unit-tested against
 synthetic packets, but not yet confirmed on physical hardware. If you run one of
-these, a report (success or bug) is very welcome. Most models carry several
-aliases (`LDROBOT_LD14P`, `DELTA_2A`, `YDLIDAR_X4` …); `lds2d.available_models()`
-lists them all.
+these, a report (success or bug) is very welcome.
 
 ## Command line
 
@@ -130,9 +139,11 @@ lds2d motor stop
 lds2d motor start
 lds2d motor speed 6        # set 6 Hz
 
-# LDS02RR: read drives the motor (software PWM on GPIO18)
-lds2d --model LDS02RR --pwm software --pwm-pin 18 read
+# host-PWM models: read drives the motor (software PWM on GPIO18)
+lds2d --model XIAOMI-LDS02RR --pwm software --pwm-pin 18 read
 ```
+
+The `read`/`motor` commands default to `LDROBOT-LD14P`; pass `--model` for others.
 
 ## Live visualizer
 
@@ -142,7 +153,7 @@ browser on your network — no GUI on the Pi required.
 ```
 pip install 'lds2d[viz]'
 lds2d viz                                   # LD14P on /dev/serial0, port 8080
-lds2d --model LDS02RR --pwm software viz    # host-driven-motor models work too
+lds2d --model XIAOMI-LDS02RR --pwm software viz    # host-driven-motor models work too
 lds2d viz --port 9000
 ```
 
@@ -157,7 +168,7 @@ moving part in `lds2d`, the buffer and scan→JSON conversion are
 from lds2d import Lidar
 from lds2d.viz import serve
 
-with Lidar.open("LD14P", "/dev/serial0") as lidar:
+with Lidar.open("LDROBOT-LD14P", "/dev/serial0") as lidar:
     serve(lidar, port=8080)
 ```
 
@@ -199,5 +210,4 @@ pytest
 
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE). The LiDAR which inspired this
-library is available at [makerspet.com](https://makerspet.com/product/ldrobot-ld14p-lidar/).
+Apache License 2.0 — see [LICENSE](LICENSE).

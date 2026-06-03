@@ -72,7 +72,7 @@ def iter_packets(buf: bytearray):
             del buf[:1]
 
 
-@register("LDS02RR", "XIAOMI_LDS02RR")
+@register("XIAOMI-LDS02RR", "XIAOMI_LDS02RR", "LDS02RR")
 class LDS02RR(HostMotorLidar):
     MODEL_NAME = "Xiaomi LDS02RR"
     DEFAULT_BAUD = 115200

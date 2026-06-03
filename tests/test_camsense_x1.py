@@ -145,7 +145,7 @@ def test_scans_split_on_wrap():
 
 
 def test_registered_aliases_and_baud():
-    for name in ("CAMSENSE-X1", "CAMSENSE_X1", "CAMSENSE", "X1"):
+    for name in ("CAMSENSE-X1", "CAMSENSE_X1", "CAMSENSE"):
         cls = driver_for(name)
         assert cls is not None
         assert cls.MODEL_NAME == "Camsense X1"

@@ -99,8 +99,8 @@ def _cmd_motor(args) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="lds2d", description="2D LiDAR tool")
-    ap.add_argument("--model", default="LD14P",
-                    help=f"LiDAR model (default LD14P); known: {', '.join(available_models())}")
+    ap.add_argument("--model", default="LDROBOT-LD14P",
+                    help=f"LiDAR model (default LDROBOT-LD14P); known: {', '.join(available_models())}")
     ap.add_argument("--port", default=DEFAULT_PORT, help="serial port")
     ap.add_argument("--baud", type=int, default=None, help="override the default baud")
     # Host-driven motor (LDS02RR) PWM options; ignored by self-spinning LiDARs.
