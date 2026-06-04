@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lds2d"
-version = "0.5.0"
+version = "0.6.0"
 description = "Python driver for 2D LiDARs (LDROBOT, YDLIDAR, RPLIDAR, 3irobotix, Neato/Xiaomi, Camsense, Hitachi-LG) — a Pythonic port of kaiaai/LDS"
 readme = "README.md"
 requires-python = ">=3.8"

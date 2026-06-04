@@ -15,6 +15,9 @@ DEFAULT_PORT = "/dev/serial0"
 
 def _open(args):
     """Open the LiDAR, forwarding PWM settings only for host-driven-motor models."""
+    if getattr(args, "demo", False):
+        from .demo import DemoLidar           # synthetic scene, no hardware
+        return DemoLidar()
     cls = driver_for(args.model)
     kwargs = {}
     if cls is not None and getattr(cls, "NEEDS_MOTOR", False):
@@ -25,8 +28,11 @@ def _open(args):
 
 def _cmd_read(args) -> int:
     lidar = _open(args)
-    print(f"{lidar.MODEL_NAME}: reading {args.port} @ {args.baud or lidar.DEFAULT_BAUD} "
-          f"baud  (Ctrl-C to stop)", file=sys.stderr)
+    if getattr(args, "demo", False):
+        print("Demo: synthesizing scans — no hardware  (Ctrl-C to stop)", file=sys.stderr)
+    else:
+        print(f"{lidar.MODEL_NAME}: reading {args.port} @ {args.baud or lidar.DEFAULT_BAUD} "
+              f"baud  (Ctrl-C to stop)", file=sys.stderr)
     try:
         if args.raw:
             print(f"{'angle':>7}  {'dist_mm':>7}  {'quality':>7}")
@@ -54,7 +60,8 @@ def _cmd_viz(args) -> int:
     from .viz import serve
     lidar = _open(args)
     shown = "localhost" if args.host in ("0.0.0.0", "") else args.host
-    print(f"{lidar.MODEL_NAME}: live plot at http://{shown}:{args.port}  "
+    tag = "Demo (synthetic)" if getattr(args, "demo", False) else lidar.MODEL_NAME
+    print(f"{tag}: live plot at http://{shown}:{args.port}  "
           f"(Ctrl-C to stop)", file=sys.stderr)
     try:
         serve(lidar, host=args.host, port=args.port)
@@ -112,13 +119,17 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--pwm-freq", type=int, default=10000, help="PWM frequency (Hz)")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
+    _demo_help = "stream a synthetic moving scene — no hardware needed"
+
     r = sub.add_parser("read", help="print live scan data")
     r.add_argument("--raw", action="store_true", help="one line per measurement")
+    r.add_argument("--demo", action="store_true", help=_demo_help)
     r.set_defaults(func=_cmd_read)
 
     v = sub.add_parser("viz", help="live polar plot in your browser")
     v.add_argument("--host", default="0.0.0.0", help="bind address (default all interfaces)")
     v.add_argument("--port", type=int, default=8080, help="HTTP port (default 8080)")
+    v.add_argument("--demo", action="store_true", help=_demo_help)
     v.set_defaults(func=_cmd_viz)
 
     m = sub.add_parser("motor", help="control the motor (command-driven models)")

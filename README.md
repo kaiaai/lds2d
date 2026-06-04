@@ -15,6 +15,9 @@ or over full 360° scans.
 **Read the intro:** [lds2d: one Python library for 2D LiDARs — now with a live
 browser radar](https://makerspet.com/blog/lds2d-python-2d-lidar-library-live-browser-radar/).
 
+**Try the radar without any hardware** — `pip install 'lds2d[viz]'` then
+`lds2d viz --demo` and open `http://localhost:8080`.
+
 ## Install
 
 ```
@@ -146,12 +149,24 @@ The `read`/`motor` commands default to `LDROBOT-LD14P`; pass `--model` for other
 Want to *see* the sweep? `lds2d viz` serves a live polar plot you can open in any
 browser on your network — no GUI on the Pi required.
 
+**No LiDAR yet? Try it right now with the built-in demo** — it synthesises a moving
+2D scene (walls, pillars, a desk, someone pacing), so you get the radar with zero
+hardware:
+
 ```
 pip install 'lds2d[viz]'
-lds2d viz                                   # LD14P on /dev/serial0, port 8080
+lds2d viz --demo            # then open http://localhost:8080
+```
+
+With a real sensor attached:
+
+```
+lds2d viz                                   # LDROBOT-LD14P on /dev/serial0, port 8080
 lds2d --model XIAOMI-LDS02RR --pwm software viz    # host-driven-motor models work too
 lds2d viz --port 9000
 ```
+
+(`lds2d read --demo` prints the same synthetic scans as text, no browser needed.)
 
 Then open `http://<your-pi>:8080`. Points are coloured by signal strength and the
 range ring auto-scales to the room; the HUD shows the live scan rate and point
