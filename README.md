@@ -8,7 +8,7 @@ Python driver for 2D LiDARs. **23 models supported** across LDROBOT, YDLIDAR, RP
 pip install 'lds2d[viz]'
 lds2d viz --demo
 ```
-and open `http://localhost:8080`.
+and open http://localhost:8080.
 
 ### Video: Xiaomi LDS02RR LiDAR Sensor Connected to Raspberry Pi 5
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=D9m6riTf1TU" target="_blank">
