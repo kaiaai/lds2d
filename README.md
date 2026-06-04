@@ -2,21 +2,22 @@
 
 Python driver for 2D LiDARs — a Pythonic port of the [kaiaai/LDS](https://github.com/kaiaai/LDS) C++ library.
 
-Where the C++ library targets Arduino with registered callbacks, `lds2d` targets
-Linux / Raspberry Pi and gives you plain iterators: loop over individual points
-or over full 360° scans.
-
 > **23 models supported** across LDROBOT, YDLIDAR, RPLIDAR, 3irobotix, Neato /
 > Xiaomi, Camsense and Hitachi-LG — see the [model table](https://github.com/kaiaai/lds2d#supported-models)
-> below. Every model is ported from [kaiaai/LDS](https://github.com/kaiaai/LDS)
-> and unit-tested against recorded byte streams; the ones not yet checked on real
-> hardware are flagged.
+> below. Read the intro: [lds2d: one Python library for 2D LiDARs](https://makerspet.com/blog/lds2d-python-2d-lidar-library-live-browser-radar/).
 
-**Read the intro:** [lds2d: one Python library for 2D LiDARs — now with a live
-browser radar](https://makerspet.com/blog/lds2d-python-2d-lidar-library-live-browser-radar/).
+## Try it in 60 seconds - without any hardware
 
-**Try the radar without any hardware** — `pip install 'lds2d[viz]'` then
-`lds2d viz --demo` and open `http://localhost:8080`.
+```
+pip install 'lds2d[viz]'
+lds2d viz --demo
+```
+and open `http://localhost:8080`.
+
+### Video: Xiaomi LDS02RR LiDAR Sensor Connected to Raspberry Pi 5
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=D9m6riTf1TU" target="_blank">
+ <img src="http://img.youtube.com/vi/D9m6riTf1TU/maxresdefault.jpg" alt="Xiaomi LDS02RR LiDAR Sensor Connected to Raspberry Pi 5" width="720" height="405" border="10" />
+</a>
 
 ## Install
 
