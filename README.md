@@ -1,10 +1,6 @@
 # lds2d
 
-Python driver for 2D LiDARs — a Pythonic port of the [kaiaai/LDS](https://github.com/kaiaai/LDS) C++ library.
-
-> **23 models supported** across LDROBOT, YDLIDAR, RPLIDAR, 3irobotix, Neato /
-> Xiaomi, Camsense and Hitachi-LG — see the [model table](https://github.com/kaiaai/lds2d#supported-models)
-> below. Read the intro: [lds2d: one Python library for 2D LiDARs](https://makerspet.com/blog/lds2d-python-2d-lidar-library-live-browser-radar/).
+Python driver for 2D LiDARs. **23 models supported** across LDROBOT, YDLIDAR, RPLIDAR, 3irobotix, Neato / Xiaomi, Camsense and Hitachi-LG — see the [model table](https://github.com/kaiaai/lds2d#supported-models) below.
 
 ## Try it in 60 seconds - without any hardware
 
@@ -18,6 +14,8 @@ and open `http://localhost:8080`.
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=D9m6riTf1TU" target="_blank">
  <img src="http://img.youtube.com/vi/D9m6riTf1TU/maxresdefault.jpg" alt="Xiaomi LDS02RR LiDAR Sensor Connected to Raspberry Pi 5" width="720" height="405" border="10" />
 </a>
+
+Read the intro: [lds2d: one Python library for 2D LiDARs](https://makerspet.com/blog/lds2d-python-2d-lidar-library-live-browser-radar/).
 
 ## Install
 
@@ -299,6 +297,10 @@ pytest
 
 - 0.6.0: added `lds2d viz --demo` mode
 - 0.5.0: initial release
+
+## Acknowledgements
+
+`lds2d` is a Pythonic port of the [kaiaai/LDS](https://github.com/kaiaai/LDS) C++ library.
 
 ## License
 
