@@ -43,8 +43,8 @@ with Lidar.open("LDROBOT-LD14P", "/dev/serial0") as lidar:
 ```
 
 Model names are `MANUFACTURER-MODEL` (e.g. `YDLIDAR-X4`, `RPLIDAR-A1`) — see the
-[model table](https://github.com/kaiaai/lds2d#supported-models). Want a flat stream instead of grouped scans?
-Use `lidar.points()`.
+[model table](https://github.com/kaiaai/lds2d#supported-models).
+Use `lidar.points()` to get a flat stream instead of grouped scans.
 
 ### Motor control (LDROBOT-LD14P)
 
@@ -145,17 +145,7 @@ The `read`/`motor` commands default to `LDROBOT-LD14P`; pass `--model` for other
 
 ## Live visualizer
 
-Want to *see* the sweep? `lds2d viz` serves a live polar plot you can open in any
-browser on your network — no GUI on the Pi required.
-
-**No LiDAR yet? Try it right now with the built-in demo** — it synthesises a moving
-2D scene (walls, pillars, a desk, someone pacing), so you get the radar with zero
-hardware:
-
-```
-pip install 'lds2d[viz]'
-lds2d viz --demo            # then open http://localhost:8080
-```
+`lds2d viz` shows a live polar plot you can open in any browser on your network — no GUI on the Pi required.
 
 With a real sensor attached:
 
@@ -171,7 +161,7 @@ Then open `http://<your-pi>:8080`. Points are coloured by signal strength and th
 range ring auto-scales to the room; the HUD shows the live scan rate and point
 count. Under the hood it's a background reader thread feeding a thread-safe
 latest-scan buffer that a tiny Flask app exposes as JSON — and like every other
-moving part in `lds2d`, the buffer and scan→JSON conversion are
+moving part in `lds2d`, the buffer and scan-to-JSON conversion are
 [unit-tested without any hardware](https://github.com/kaiaai/lds2d/blob/main/tests/test_viz.py).
 
 ```python
@@ -244,7 +234,7 @@ lds2d --model YDLIDAR-X4 read
 XV11 — let the Pi spin the motor over a GPIO with
 [`gpiozero`](https://gpiozero.readthedocs.io/), which on the Pi 5 talks through
 the `lgpio` backend. Both ship with Raspberry Pi OS as `python3-gpiozero` /
-`python3-lgpio`. Two snags trip people up: recent Raspberry Pi OS blocks `pip`
+`python3-lgpio`. Two snags to avoid: recent Raspberry Pi OS blocks `pip`
 from installing into the system Python (PEP 668), and the `lgpio` wheel won't
 build from PyPI without `swig`. The painless way is a venv that can **see** the
 system GPIO packages:
@@ -258,8 +248,8 @@ lds2d --model 3IROBOTIX-DELTA-2A --pwm software --pwm-pin 18 read
 ```
 
 `--system-site-packages` lets the venv use the system `gpiozero`/`lgpio` while
-`lds2d` and `pyserial` come from PyPI. Prefer a fully isolated venv instead?
-Install the build tools first — `sudo apt install -y swig python3-dev` — then
+`lds2d` and `pyserial` come from PyPI. If you're using a fully isolated venv instead,
+install the build tools first — `sudo apt install -y swig python3-dev` — then
 `pip install 'lds2d[pwm]' lgpio` builds the backend inside it.
 
 > The motor PWM pin is `--pwm-pin` on the CLI / `pwm_pin=` in Python (default
