@@ -192,7 +192,7 @@ with Lidar.open("LDROBOT-LD14P", "/dev/serial0") as lidar:
 - GND to GND
 - 5V to 5V power
 
-The LiDAR 5V current supply ranges ~0.3~1A peak depending on LiDAR model.
+The LiDAR 5V current supply ranges from 0.3 to 1A peak depending on LiDAR model.
 
 ## Wiring & setup (Raspberry Pi)
 
@@ -216,7 +216,7 @@ See these step-by-step tutorials for wiring illustrations:
 
 Host-driven-motor LiDARs require one GPIO connection:
 
-- LiDAR MOT+, MOT- (host-driven LiDARs only) → PWM-to-motor-driver adapter → GPIO18/Pin12
+- LiDAR MOT+, MOT- → PWM-to-motor-driver adapter → GPIO18/Pin12
 
 The PWM-to-motor-driver adapter for host-driven-motor LiDARs is a simple circuit - see these step-by-step tutorials:
 
@@ -293,6 +293,11 @@ recorded byte streams — no hardware required (see `tests/`).
 pip install -e ".[dev]"
 pytest
 ```
+
+## Revision History
+
+- 0.6.0: added `lds2d viz --demo` mode
+- 0.5.0: initial release
 
 ## License
 
