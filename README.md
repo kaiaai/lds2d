@@ -150,14 +150,21 @@ With a real sensor attached:
 ```
 lds2d viz                                   # LDROBOT-LD14P on /dev/serial0, port 8080
 lds2d --model XIAOMI-LDS02RR --pwm software viz    # host-driven-motor models work too
-lds2d viz --port 9000
+lds2d viz --port 9000                       # or --http-port 9000
+lds2d viz --rotation cw                      # match your LiDAR's spin direction
+lds2d viz --range 6000                       # lock the rim at 6 m instead of auto-scaling
 ```
 
 (`lds2d read --demo` prints the same synthetic scans as text, no browser needed.)
 
 Then open `http://<your-pi>:8080`. Points are coloured by signal strength and the
 range ring auto-scales to the room; the HUD shows the live scan rate and point
-count. Under the hood it's a background reader thread feeding a thread-safe
+count. Two display knobs: **`--rotation cw|ccw`** matches the way your LiDAR spins
+(look it up in the datasheet, or just flip it if the plot comes out mirrored), and
+**`--range MM`** pins the rim distance instead of auto-scaling. The auto-scale
+grows instantly to fit the farthest point but eases back down slowly, so a wall
+blinking out as someone walks past no longer makes the whole plot jump. Under the
+hood it's a background reader thread feeding a thread-safe
 latest-scan buffer that a tiny Flask app exposes as JSON — and like every other
 moving part in `lds2d`, the buffer and scan-to-JSON conversion are
 [unit-tested without any hardware](https://github.com/kaiaai/lds2d/blob/main/tests/test_viz.py).

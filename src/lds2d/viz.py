@@ -99,11 +99,16 @@ class ScanReader:
         self._stop.set()
 
 
-def make_app(buffer: ScanBuffer, model: str = "LiDAR"):
+def make_app(buffer: ScanBuffer, model: str = "LiDAR",
+             rotation: str = "ccw", fixed_range: int = 0):
     """Build the Flask app serving the plot (``/``) and the data (``/scan.json``).
 
     Importing Flask is deferred to here so the rest of the module — and its
     tests — work with the base install.
+
+    ``rotation`` is the sensor's spin direction (``"cw"`` or ``"ccw"``); set it to
+    match your LiDAR so the plot isn't mirrored. ``fixed_range`` (mm, 0 = auto)
+    locks the rim distance instead of auto-scaling to the scan.
     """
     try:
         from flask import Flask, Response, jsonify
@@ -113,10 +118,15 @@ def make_app(buffer: ScanBuffer, model: str = "LiDAR"):
             "pip install 'lds2d[viz]'") from e
 
     app = Flask(__name__)
+    flip = str(rotation).lower() == "cw"   # cw sensors plot mirrored without this
+    page = (INDEX_HTML
+            .replace("{{MODEL}}", model)
+            .replace("{{FLIP}}", "true" if flip else "false")
+            .replace("{{RANGE}}", str(int(fixed_range))))
 
     @app.route("/")
     def index() -> "Response":
-        return Response(INDEX_HTML.replace("{{MODEL}}", model), mimetype="text/html")
+        return Response(page, mimetype="text/html")
 
     @app.route("/scan.json")
     def scan_json():
@@ -125,15 +135,20 @@ def make_app(buffer: ScanBuffer, model: str = "LiDAR"):
     return app
 
 
-def serve(lidar, host: str = "0.0.0.0", port: int = 8080) -> None:
+def serve(lidar, host: str = "0.0.0.0", port: int = 8080,
+          rotation: str = "ccw", fixed_range: int = 0) -> None:
     """Start the reader thread and run the visualizer until interrupted.
 
     Blocks in Flask's development server. The reader thread is a daemon, so a
     Ctrl-C that unwinds the caller's ``with`` block still stops the motor.
+
+    ``rotation`` (``"cw"``/``"ccw"``) matches the sensor's spin direction so the
+    plot isn't mirrored; ``fixed_range`` (mm) locks the rim distance (0 = auto).
     """
     buffer = ScanBuffer()
     reader = ScanReader(lidar, buffer).start()
-    app = make_app(buffer, model=getattr(lidar, "MODEL_NAME", "LiDAR"))
+    app = make_app(buffer, model=getattr(lidar, "MODEL_NAME", "LiDAR"),
+                   rotation=rotation, fixed_range=fixed_range)
     try:
         app.run(host=host, port=port, threaded=True)
     finally:
@@ -170,12 +185,27 @@ INDEX_HTML = """<!doctype html>
 const cv = document.getElementById("c"), ctx = cv.getContext("2d");
 const hud = document.getElementById("hud"), ringLabel = document.getElementById("ring");
 const CX = cv.width / 2, CY = cv.height / 2, R = cv.width / 2 - 16;
-let maxRange = 4000;            // mm shown at the rim; auto-scales to the scan
+const FLIP = {{FLIP}};         // reverse the plotted rotation direction
+const FIXED_RANGE = {{RANGE}}; // mm shown at the rim; 0 = auto-scale to the scan
+let maxRange = 4000;           // tidy rim distance actually drawn
+let smoothMax = 4000;          // damped max distance, so the scale doesn't jump
 
 function niceRange(mm) {        // round up to a tidy ring distance
   const steps = [1000, 2000, 3000, 4000, 6000, 8000, 12000, 16000];
   for (const s of steps) if (mm <= s) return s;
   return Math.ceil(mm / 8000) * 8000;
+}
+
+function updateRange(scan) {   // grow at once, shrink slowly — see draw()
+  if (FIXED_RANGE > 0) { maxRange = FIXED_RANGE; return; }
+  if (!scan.points.length) return;
+  let mx = 0; for (const p of scan.points) if (p.dist > mx) mx = p.dist;
+  // Snap up immediately so the farthest point always fits, but ease back down
+  // slowly: a wall point flickering out as someone walks by no longer makes the
+  // whole plot pop to a smaller scale and back.
+  if (mx > smoothMax) smoothMax = mx;
+  else smoothMax += (mx - smoothMax) * 0.05;
+  maxRange = niceRange(smoothMax);
 }
 
 function grid() {
@@ -191,14 +221,12 @@ function grid() {
 }
 
 function draw(scan) {
-  if (scan.points.length) {
-    let mx = 0; for (const p of scan.points) if (p.dist > mx) mx = p.dist;
-    maxRange = niceRange(mx);
-  }
-  ringLabel.textContent = (maxRange / 1000).toFixed(0) + " m";
+  updateRange(scan);
+  ringLabel.textContent = (maxRange / 1000).toFixed(maxRange % 1000 ? 1 : 0) + " m";
   grid();
   for (const p of scan.points) {
-    const a = (p.angle - 90) * Math.PI / 180;        // 0° up, clockwise
+    const ang = FLIP ? -p.angle : p.angle;
+    const a = (ang - 90) * Math.PI / 180;            // 0° up, clockwise (FLIP reverses)
     const r = Math.min(p.dist / maxRange, 1) * R;
     const x = CX + r * Math.cos(a), y = CY + r * Math.sin(a);
     const t = Math.max(0.25, Math.min(1, p.quality / 200));

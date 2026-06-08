@@ -61,10 +61,11 @@ def _cmd_viz(args) -> int:
     lidar = _open(args)
     shown = "localhost" if args.host in ("0.0.0.0", "") else args.host
     tag = "Demo (synthetic)" if getattr(args, "demo", False) else lidar.MODEL_NAME
-    print(f"{tag}: live plot at http://{shown}:{args.port}  "
+    print(f"{tag}: live plot at http://{shown}:{args.http_port}  "
           f"(Ctrl-C to stop)", file=sys.stderr)
     try:
-        serve(lidar, host=args.host, port=args.port)
+        serve(lidar, host=args.host, port=args.http_port,
+              rotation=args.rotation, fixed_range=args.range)
     except KeyboardInterrupt:
         print("\nStopped.", file=sys.stderr)
     finally:
@@ -128,7 +129,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     v = sub.add_parser("viz", help="live polar plot in your browser")
     v.add_argument("--host", default="0.0.0.0", help="bind address (default all interfaces)")
-    v.add_argument("--port", type=int, default=8080, help="HTTP port (default 8080)")
+    # Distinct dest from the global serial --port, or the subparser default would
+    # clobber it and Lidar.open() would receive the HTTP port as the serial port.
+    v.add_argument("--http-port", "--port", dest="http_port", type=int, default=8080,
+                   help="HTTP port (default 8080)")
+    v.add_argument("--rotation", choices=["cw", "ccw"], default="ccw",
+                   help="your LiDAR's spin direction; flip it if the plot looks mirrored "
+                        "(default ccw)")
+    v.add_argument("--range", type=int, default=0, metavar="MM",
+                   help="lock the rim distance in mm (default 0 = auto-scale)")
     v.add_argument("--demo", action="store_true", help=_demo_help)
     v.set_defaults(func=_cmd_viz)
 
