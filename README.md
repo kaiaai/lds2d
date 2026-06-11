@@ -11,9 +11,12 @@ lds2d viz --demo
 and open http://localhost:8080.
 
 ### Video: Xiaomi LDS02RR LiDAR Sensor Connected to Raspberry Pi 5
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=D9m6riTf1TU" target="_blank">
- <img src="http://img.youtube.com/vi/D9m6riTf1TU/maxresdefault.jpg" alt="Xiaomi LDS02RR LiDAR Sensor Connected to Raspberry Pi 5" width="720" height="405" border="10" />
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=dzaB3fDWH2w" target="_blank">
+ <img src="http://img.youtube.com/vi/dzaB3fDWH2w/maxresdefault.jpg" alt="Xiaomi LDS02RR LiDAR Sensor Connected to Raspberry Pi 5" width="720" height="405" border="10" />
 </a>
+
+
+
 
 ## Install
 
