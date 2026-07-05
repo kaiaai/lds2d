@@ -16,7 +16,7 @@ from .core import (
 )
 from . import drivers  # noqa: F401,E402  — register bundled drivers on import
 
-__version__ = "0.6.1"
+__version__ = "0.7.0"
 
 __all__ = [
     "Lidar",

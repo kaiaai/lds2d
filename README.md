@@ -118,12 +118,18 @@ marks whether the port has been confirmed on real hardware yet.
 | RPLIDAR C1 | `RPLIDAR-C1` | 460800 | onboard (serial cmd) | spec¹ |
 | Camsense X1 | `CAMSENSE-X1` | 115200 | onboard | spec¹ |
 | Hitachi-LG HLS-LFCD2 (TurtleBot3 LDS-01) | `HLS-LFCD2` | 230400 | onboard (serial cmd) | spec¹ |
+| COIN-D4A | `COIN-D4A` | 115200² | onboard (serial cmd) | spec¹ |
 
 `lds2d.available_models()` lists every accepted name.
 
 ¹ **spec** = faithfully ported from the kaiaai/LDS C++ and unit-tested against
 synthetic packets, but not yet confirmed on physical hardware. If you run one of
 these, a report (success or bug) is very welcome.
+
+² COIN-D4A is not tested on hardware yet. Its baud is the CSPC M1C1-Mini family
+default; confirm against your unit. The COIN-D4A driver was ported from
+[QuirkyCort's MicroPython driver](https://github.com/QuirkyCort/IoTy/blob/main/public/extensions/coind4.py)
+([awesome-2d-lidars#3](https://github.com/kaiaai/awesome-2d-lidars/issues/3)).
 
 ## Command line
 

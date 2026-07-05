@@ -8,7 +8,8 @@ from lds2d.core import _REGISTRY, driver_for
 # Manufacturer prefixes that make a name unambiguous.
 _PREFIXES = ("LDROBOT-", "LDROBOT_", "3IROBOTIX-", "3IROBOTIX_", "XIAOMI-",
              "XIAOMI_", "NEATO-", "NEATO_", "YDLIDAR-", "YDLIDAR_",
-             "RPLIDAR-", "RPLIDAR_", "CAMSENSE-", "CAMSENSE_", "HLS-", "HLS_")
+             "RPLIDAR-", "RPLIDAR_", "CAMSENSE-", "CAMSENSE_", "HLS-", "HLS_",
+             "COIN-", "COIN_")
 
 
 def test_every_model_has_a_manufacturer_qualified_name():
