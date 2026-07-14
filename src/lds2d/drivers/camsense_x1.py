@@ -23,7 +23,7 @@ Packet (36 bytes, all multi-byte fields little-endian)::
     6    2     u16          start_angle      (angle_q6 + 0xA000)
     8    24    8 x sample   each: int16 distance_mm, u8 quality
     32   2     u16          end_angle        (angle_q6 + 0xA000)
-    34   2     u16          crc16            (present, NOT verified by kaiaai/LDS)
+    34   2     u16          checksum         (15-bit, see crc.camsense_checksum)
 
 Field math (faithful to the .cpp):
   * scan_freq_hz   = rotation_speed / 3840.0      (3840 = 64 * 60)
@@ -34,11 +34,13 @@ Field math (faithful to the .cpp):
     span wraps so end += 360 before stepping, and angles > 360 wrap back down.
   * distance is a *signed* int16 in millimetres (negative = invalid return).
 
-Checksum note: the kaiaai/LDS parser carries the trailing ``crc16`` field but
-does NOT validate it (the ``ERROR_CHECKSUM`` line is commented out). Its only
-packet-integrity gate is the ``angle >= 0xA000`` range check, which this port
-reproduces. We expose ``crc16`` from the parse but, like the C++, do not reject
-on it.
+Checksum note: the field the community drivers label an unidentified "crc16" is
+in fact the vendor's own 15-bit fold, not a CRC -- see
+:func:`lds2d.crc.camsense_checksum`. This driver verifies it, which the older
+kaiaai/LDS C++ did not (its ``ERROR_CHECKSUM`` line is commented out, leaving
+the ``angle >= 0xA000`` range check as its only integrity gate). Verified
+against the 47 sample packets published at github.com/thijses/camsense-X1
+(``a few data packets.txt``): 100% match.
 """
 from __future__ import annotations
 
@@ -46,6 +48,7 @@ import struct
 from typing import List, Tuple
 
 from ..core import LidarDriver, ScanPoint, register
+from ..crc import camsense_checksum
 
 _START0 = 0x55
 _START1 = 0xAA
@@ -62,13 +65,17 @@ _END_ANGLE_OFF = 32
 
 
 def parse_packet(packet: bytes) -> Tuple[float, List[ScanPoint], int]:
-    """Parse one validated 36-byte packet into (scan_freq_hz, points, crc16).
+    """Parse one 36-byte packet into (scan_freq_hz, points, checksum).
 
-    Raises ``ValueError`` if either angle field is below ``0xA000`` (the same
-    rejection the kaiaai/LDS parser applies before producing any points).
+    Raises ``ValueError`` if the checksum fails, or if either angle field is
+    below ``0xA000`` (the latter being the only gate the kaiaai/LDS parser
+    applied before producing any points).
     """
     rotation_speed, start_angle = struct.unpack_from("<HH", packet, 4)
-    end_angle, crc16 = struct.unpack_from("<HH", packet, _END_ANGLE_OFF)
+    end_angle, packet_checksum = struct.unpack_from("<HH", packet, _END_ANGLE_OFF)
+
+    if camsense_checksum(packet[:_END_ANGLE_OFF + 2]) != packet_checksum:
+        raise ValueError("Camsense X1 checksum mismatch")
 
     if start_angle < _ANGLE_MIN or end_angle < _ANGLE_MIN:
         raise ValueError("Camsense X1 angle field below 0xA000")
@@ -87,7 +94,7 @@ def parse_packet(packet: bytes) -> Tuple[float, List[ScanPoint], int]:
         if angle_deg > 360.0:
             angle_deg -= 360.0
         points.append(ScanPoint(angle_deg, dist_mm, quality))
-    return scan_freq_hz, points, crc16
+    return scan_freq_hz, points, packet_checksum
 
 
 def _find_header(buf: bytearray) -> int:

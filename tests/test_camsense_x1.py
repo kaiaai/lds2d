@@ -1,7 +1,7 @@
 """Hardware-free tests for the Camsense X1 driver: build 36-byte packets in
 memory, feed them through a fake transport, and check angle interpolation,
-distance/quality decoding, the angle-range validity gate + resync, and scan
-grouping. Packets carry a plausible (but unverified, like the C++) crc16."""
+distance/quality decoding, the checksum and angle-range validity gates + resync,
+and scan grouping. Also checks the checksum against real captured packets."""
 import struct
 from itertools import islice
 
@@ -9,14 +9,24 @@ import pytest
 
 from lds2d import Lidar, ScanPoint
 from lds2d.core import driver_for
+from lds2d.crc import camsense_checksum
 from lds2d.drivers.camsense_x1 import parse_packet
 
 START0, START1, START2, SAMPLES = 0x55, 0xAA, 0x03, 0x08
 ANGLE_MIN = 0xA000
 
+# Real packets captured from a Camsense X1, published at
+# github.com/thijses/camsense-X1 ("a few data packets.txt").
+REAL_PACKETS = [bytes.fromhex(h) for h in (
+    "55AA0308EF4DB1C200800000800000800000800000800000800000800000800033C4D133",
+    "55AA0308EC4D6CC40080000080000080000080000080008106147E06337D0633F6C5493C",
+    "55AA0308EC4D2FC67A06357A06307B06357A0633790634780622080709ED0609BAC7DB39",
+)]
 
-def make_packet(start_deg, end_deg, dists, quality=200, speed=19968, crc16=0):
-    """Assemble a valid 36-byte Camsense X1 packet.
+
+def make_packet(start_deg, end_deg, dists, quality=200, speed=19968,
+                bad_checksum=False):
+    """Assemble a valid 36-byte Camsense X1 packet with a correct checksum.
 
     Angles are given in degrees and converted to the 0xA000 + deg*64 encoding.
     speed default 19968 -> 19968/3840 = 5.2 Hz.
@@ -27,9 +37,39 @@ def make_packet(start_deg, end_deg, dists, quality=200, speed=19968, crc16=0):
     assert len(dists) == SAMPLES
     for d in dists:
         body += struct.pack("<hB", d, quality)
-    body += struct.pack("<HH", end_raw, crc16)
+    body += struct.pack("<H", end_raw)
+    cks = camsense_checksum(body)
+    if bad_checksum:
+        cks ^= 0x0001
+    body += struct.pack("<H", cks)
     assert len(body) == 36
     return body
+
+
+# --- checksum, validated against real hardware captures ---
+
+def test_checksum_matches_real_captured_packets():
+    for pkt in REAL_PACKETS:
+        assert len(pkt) == 36
+        assert camsense_checksum(pkt[:34]) == struct.unpack_from("<H", pkt, 34)[0]
+
+
+def test_checksum_is_15_bit():
+    # the fold masks to 0x7FFF, so the stored high bit is never set
+    for pkt in REAL_PACKETS:
+        assert struct.unpack_from("<H", pkt, 34)[0] & 0x8000 == 0
+
+
+def test_real_captured_packet_parses():
+    freq, points, _cks = parse_packet(REAL_PACKETS[0])
+    assert round(freq, 2) == 5.20            # X1 free-runs at ~5.2 Hz
+    assert len(points) == SAMPLES
+    assert all(not p.valid for p in points)  # this one is all 0x8000 "no return"
+
+
+def test_rejects_bad_checksum():
+    with pytest.raises(ValueError):
+        parse_packet(make_packet(10.0, 17.0, [500] * SAMPLES, bad_checksum=True))
 
 
 def test_parse_packet_angles_distance_quality_freq():
@@ -66,10 +106,12 @@ def test_signed_distance_is_negative():
 
 def test_angle_below_min_rejected():
     # Hand-build a packet whose start_angle is below 0xA000 -> ValueError.
+    # The checksum is made valid so the angle gate is what rejects it.
     body = struct.pack("<BBBBHH", START0, START1, START2, SAMPLES, 19968, 0x0010)
     for _ in range(SAMPLES):
         body += struct.pack("<hB", 100, 50)
-    body += struct.pack("<HH", ANGLE_MIN + 100, 0)
+    body += struct.pack("<H", ANGLE_MIN + 100)
+    body += struct.pack("<H", camsense_checksum(body))
     with pytest.raises(ValueError):
         parse_packet(bytes(body))
 
@@ -119,8 +161,10 @@ def test_driver_skips_invalid_angle_packet():
     # dropped via the angle-range gate; the following good packet wins.
     good = make_packet(10.0, 17.0, [300] * SAMPLES)
     bad = bytearray(make_packet(10.0, 17.0, [200] * SAMPLES))
-    # corrupt start_angle to below 0xA000 (offset 6..7, little-endian)
+    # corrupt start_angle to below 0xA000 (offset 6..7, little-endian), then
+    # re-checksum so the angle gate (not the checksum) is what rejects it
     bad[6:8] = struct.pack("<H", 0x0010)
+    bad[34:36] = struct.pack("<H", camsense_checksum(bytes(bad[:34])))
     lidar = Lidar.open("CAMSENSE-X1", transport=FakeTransport(bytes(bad) + good))
     first = next(iter(lidar.points()))
     assert first.dist_mm == 300
