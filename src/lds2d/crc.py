@@ -5,8 +5,11 @@
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
-"""CRC-8 (poly 0x4D) used by the LDROBOT LD06/LD14P/LD19 packet family,
-both for data packets and the motor command frames."""
+"""Packet check functions.
+
+* :func:`crc8` -- CRC-8 (poly 0x4D), LDROBOT LD06/LD14P/LD19 family.
+* :func:`camsense_checksum` -- 15-bit fold, 3irobotix/Camsense family.
+"""
 
 CRC_TABLE = bytes([
     0x00, 0x4d, 0x9a, 0xd7, 0x79, 0x34, 0xe3, 0xae, 0xf2, 0xbf, 0x68, 0x25,
@@ -40,3 +43,22 @@ def crc8(data):
     for b in data:
         crc = CRC_TABLE[(crc ^ b) & 0xFF]
     return crc
+
+
+def camsense_checksum(data):
+    """15-bit checksum over ``data`` read as little-endian uint16 words.
+
+    Used by the 3irobotix/Camsense family (Camsense X1, LDS08RR Camsense
+    revision). Pass the packet *without* its trailing checksum field.
+
+    Despite being stored in a field the community drivers label "crc16", this is
+    not a CRC at all -- it is a Neato-XV11-style shift-and-fold, masked to 15
+    bits (so the stored value's high bit is always clear). Taken from
+    ``HCLidar::checkDataCal()`` in the official Camsense SDK
+    (github.com/camsense/T2SDK, src/base/hclidar.cpp).
+    """
+    chk32 = 0
+    for i in range(len(data) // 2):
+        word = data[2 * i] | (data[2 * i + 1] << 8)
+        chk32 = ((chk32 << 1) + word) & 0xFFFFFFFF
+    return ((chk32 & 0x7FFF) + (chk32 >> 15)) & 0x7FFF

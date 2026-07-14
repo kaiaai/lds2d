@@ -119,6 +119,7 @@ marks whether the port has been confirmed on real hardware yet.
 | Camsense X1 | `CAMSENSE-X1` | 115200 | onboard | spec¹ |
 | Hitachi-LG HLS-LFCD2 (TurtleBot3 LDS-01) | `HLS-LFCD2` | 230400 | onboard (serial cmd) | spec¹ |
 | COIN-D4A | `COIN-D4A` | 115200² | onboard (serial cmd) | spec¹ |
+| LDS08RR, Camsense-protocol revision | `LDS08RR-CAMSENSE` | 115200 | onboard | spec¹ ³ |
 
 `lds2d.available_models()` lists every accepted name.
 
@@ -130,6 +131,13 @@ these, a report (success or bug) is very welcome.
 default; confirm against your unit. The COIN-D4A driver was ported from
 [QuirkyCort's MicroPython driver](https://github.com/QuirkyCort/IoTy/blob/main/public/extensions/coind4.py)
 ([awesome-2d-lidars#3](https://github.com/kaiaai/awesome-2d-lidars/issues/3)).
+
+³ There is more than one LDS08RR revision. `3IROBOTIX-LDS08RR` speaks the
+3irobotix Delta protocol (0xAA framing); `LDS08RR-CAMSENSE` speaks the Camsense
+X1 family (0x55 0xAA framing). Using the wrong one produces noise. Its protocol
+was reverse engineered from the capture in
+[kaiaai/LDS#17](https://github.com/kaiaai/LDS/issues/17) (thanks to Nelson,
+@npireso) and verified against it, but not against live hardware.
 
 ## Command line
 

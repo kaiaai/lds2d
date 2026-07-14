@@ -12,6 +12,7 @@ from . import camsense_x1  # noqa: F401
 from . import rplidar  # noqa: F401
 from . import hitachi_lg_hls_lfcd2  # noqa: F401
 from . import cspc_coind4  # noqa: F401
+from . import lds08rr_camsense  # noqa: F401
 
 __all__ = [
     "ldrobot_ld14p",
@@ -24,4 +25,5 @@ __all__ = [
     "rplidar",
     "hitachi_lg_hls_lfcd2",
     "cspc_coind4",
+    "lds08rr_camsense",
 ]
